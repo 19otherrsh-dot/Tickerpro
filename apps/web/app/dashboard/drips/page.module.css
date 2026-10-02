@@ -1,0 +1,211 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px 16px;
+  background: var(--tp-bg-primary);
+  border-bottom: 1px solid var(--tp-border);
+}
+.pageTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--tp-text-primary);
+}
+.pageSubtitle {
+  font-size: 0.82rem;
+  color: var(--tp-text-tertiary);
+  margin-top: 2px;
+}
+
+.primaryBtn {
+  padding: 8px 18px;
+  background: linear-gradient(135deg, var(--tp-brand-600), var(--tp-brand-500));
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--tp-radius-md);
+  cursor: pointer;
+  transition: all var(--tp-transition);
+}
+.primaryBtn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dripCard {
+  background: var(--tp-bg-primary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg);
+  padding: 20px;
+  transition: all var(--tp-transition);
+}
+.dripCard:hover {
+  border-color: var(--tp-brand-300);
+  box-shadow: var(--tp-shadow-md);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cardTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--tp-text-primary);
+}
+.statusPill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--tp-radius-full);
+  text-transform: uppercase;
+  background: var(--tp-bg-tertiary);
+  color: var(--tp-text-secondary);
+}
+.statusPill.ACTIVE {
+  background: #ECFDF5;
+  color: #059669;
+}
+
+.cardStats {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--tp-bg-tertiary);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+.statValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--tp-text-primary);
+}
+.statLabel {
+  font-size: 0.7rem;
+  color: var(--tp-text-tertiary);
+  text-transform: uppercase;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+  animation: tp-fade-in 0.2s ease-out;
+}
+.modalContent {
+  background: var(--tp-bg-primary);
+  border-radius: var(--tp-radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: var(--tp-shadow-xl);
+  border: 1px solid var(--tp-border);
+  animation: tp-slide-up 0.3s ease-out;
+}
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.modalTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--tp-text-tertiary);
+  cursor: pointer;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+.formLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--tp-text-secondary);
+}
+.formInput {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--tp-bg-secondary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-md);
+  font-size: 0.9rem;
+  color: var(--tp-text-primary);
+  outline: none;
+}
+.formInput:focus {
+  border-color: var(--tp-brand-400);
+}
+
+.stepBox {
+  padding: 12px;
+  background: var(--tp-bg-secondary);
+  border-radius: var(--tp-radius-md);
+  border: 1px solid var(--tp-border);
+  margin-bottom: 12px;
+}
+
+.addStepBtn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed var(--tp-brand-400);
+  color: var(--tp-brand-500);
+  border-radius: var(--tp-radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.secondaryBtn {
+  padding: 8px 16px;
+  background: var(--tp-bg-secondary);
+  border: 1px solid var(--tp-border);
+  color: var(--tp-text-secondary);
+  border-radius: var(--tp-radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}

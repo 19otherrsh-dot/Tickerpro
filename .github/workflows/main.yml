@@ -1,0 +1,42 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          # Next.js 16 requires Node 20+.
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        # Also runs `prisma generate` via the database package's postinstall,
+        # so @prisma/client types exist for the typecheck and build below.
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # Type errors must fail the build. `tsup` (used for the API build) does NOT
+      # typecheck, so this step is the only thing catching type/syntax bugs.
+      - name: Check types
+        run: npm run check-types
+
+      - name: Test
+        run: npx turbo run test
+
+      - name: Build
+        run: npm run build

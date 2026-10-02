@@ -1,0 +1,44 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --max-warnings 0",
+    "check-types": "next typegen && tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@repo/ui": "*",
+    "@tickerpro/database": "*",
+    "@xyflow/react": "^12.10.2",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "next": "16.2.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.8.1",
+    "uuid": "^14.0.0",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.39.1",
+    "jsdom": "^25.0.1",
+    "typescript": "5.9.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,269 @@
+.page {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--tp-text-primary);
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--tp-text-tertiary);
+  margin: 0;
+}
+
+.primaryBtn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #6366F1, #818CF8);
+  color: white;
+  border: none;
+  border-radius: var(--tp-radius-md, 8px);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ghostBtn {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--tp-text-secondary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-md, 8px);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ghostBtn:hover {
+  background: var(--tp-bg-secondary);
+}
+
+.createCard {
+  background: var(--tp-bg-secondary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg, 12px);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.createCard h3 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  color: var(--tp-text-primary);
+}
+
+.createHint {
+  font-size: 0.88rem;
+  color: var(--tp-text-tertiary);
+  margin: 0 0 16px;
+}
+
+.createRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-md, 8px);
+  background: var(--tp-bg-primary);
+  color: var(--tp-text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--tp-text-tertiary);
+}
+
+.emptyIcon {
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+.emptyState h3 {
+  color: var(--tp-text-primary);
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.emptyState p {
+  max-width: 400px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--tp-bg-secondary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg, 12px);
+  padding: 24px;
+  transition: all 0.2s;
+}
+
+.card:hover {
+  border-color: #6366F166;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cardTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--tp-text-primary);
+  margin: 0;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardMeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--tp-text-tertiary);
+}
+
+.cardActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ─── Audit Log Table ─────────────────────────────────── */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--tp-border);
+  font-size: 0.88rem;
+}
+
+.table th {
+  color: var(--tp-text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  background: var(--tp-bg-secondary);
+}
+
+.table td {
+  color: var(--tp-text-primary);
+}
+
+.table tbody tr:hover {
+  background: var(--tp-bg-secondary);
+}
+
+.actionBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: monospace;
+  background: var(--tp-bg-secondary);
+  color: var(--tp-brand-600, #6366F1);
+  border: 1px solid var(--tp-border);
+}
+
+.searchRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ─── Webhook List ─────────────────────────────────────── */
+
+.webhookUrl {
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: #6366F1;
+  word-break: break-all;
+}
+
+.eventTag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: monospace;
+  background: #6366F110;
+  color: #6366F1;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.toggleActive {
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}

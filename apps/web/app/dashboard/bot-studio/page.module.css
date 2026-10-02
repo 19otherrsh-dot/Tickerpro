@@ -1,0 +1,139 @@
+.botStudioContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: #f9fafb;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+}
+
+.primaryBtn {
+  padding: 8px 16px;
+  background-color: #10B981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primaryBtn:hover {
+  background-color: #059669;
+}
+
+.primaryBtn:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.workspaceArea {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 280px;
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.sidebarTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.nodeItem {
+  padding: 12px;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: grab;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.nodeItem:hover {
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.canvas {
+  flex: 1;
+  height: 100%;
+}
+
+.customNode {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 180px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.customNode:hover {
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.customNodeHeader {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.triggerNode .customNodeHeader { color: #8B5CF6; }
+.messageNode .customNodeHeader { color: #3B82F6; }
+.conditionNode .customNodeHeader { color: #F59E0B; }
+.aiNode .customNodeHeader { color: #10B981; }
+
+.nodeInput {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}

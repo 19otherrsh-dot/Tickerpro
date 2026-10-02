@@ -1,0 +1,120 @@
+.widgetContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: #6B7280;
+  margin-bottom: 32px;
+}
+
+.settingsCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #E5E7EB;
+  margin-bottom: 24px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.inputField {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.colorPicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.colorInput {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.saveBtn {
+  background-color: #4F46E5;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.saveBtn:hover {
+  background-color: #4338CA;
+}
+
+.saveBtn:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.embedCard {
+  background: #F9FAFB;
+  border: 1px dashed #D1D5DB;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.codeBlock {
+  background: #1F2937;
+  color: #E5E7EB;
+  padding: 16px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+
+.copyBtn {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copyBtn:hover {
+  background-color: #F3F4F6;
+}

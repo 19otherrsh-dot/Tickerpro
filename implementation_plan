@@ -1,0 +1,114 @@
+# TickerPro Execution Plan
+
+This document outlines the scalable, open-source-first architecture and phased execution plan for TickerPro, the Next-Gen WhatsApp Business API platform.
+
+## User Review Required
+> [!IMPORTANT]
+> - **Open Source AI Models vs OpenAI:** The PRD mentions OpenAI GPT-4o. To adhere to the "use open source tools wherever we can" requirement, I have proposed using self-hosted open-source models (like Llama 3 or Mistral via vLLM/Ollama) for sentiment analysis and reply suggestions. This drastically reduces operating costs at scale and improves data privacy. Do you approve of this approach, or should we stick to the OpenAI API?
+> - **Architecture Pattern:** I propose starting with a **Turborepo Monorepo** containing modular backend services. This provides the development speed of a monolith while allowing specific services (like the AI inference engine or Webhook processor) to be scaled independently as microservices later.
+
+## Open Questions (Resolved)
+> [!NOTE]
+> - **Cloud Provider:** Local Docker for development. AWS in the future for production. ✅
+> - **CRM Integrations:** Custom integrations from scratch. ✅
+
+## Proposed Architecture & Tech Stack
+
+To ensure TickerPro handles enterprise-scale traffic (e.g., 1M messages/hour) while maintaining < 500ms latency, we will use a highly scalable, event-driven architecture heavily reliant on robust open-source tools.
+
+### Core Infrastructure
+- **Monorepo Management:** Turborepo (Open source, excellent for sharing code between Web, Mobile, and Backend)
+- **Containerization & Orchestration:** Docker & Kubernetes (Standard open-source scaling)
+- **Message Broker:** Apache Kafka (Crucial for high-throughput broadcast queuing and asynchronous webhook processing)
+- **API Gateway / Load Balancer:** NGINX or APISIX (High-performance open-source gateway)
+
+### Backend Services
+- **Core API & Webhooks:** Node.js with Fastify or NestJS (Fastify is exceptionally fast for high-volume webhooks)
+- **AI/ML Service:** Python with FastAPI (Ideal for serving ML models and interacting with LLMs)
+- **ORM / Database Client:** Prisma or Drizzle ORM (Type-safe and scalable)
+
+### Database Layer
+- **Primary Transactional DB:** PostgreSQL (Open source, highly reliable for multi-tenant SaaS)
+- **Analytics Engine:** ClickHouse (Open-source columnar database, perfect for real-time campaign & chatbot analytics)
+- **Caching & Rate Limiting:** Redis (Open source, essential for caching session states, rate limiting, and temporary queues)
+
+### Frontend Layer
+- **Web App:** React / Next.js with Tailwind CSS and Shadcn UI (For a premium, modern, and accessible design system)
+- **Mobile App:** React Native (Expo) (Allows code sharing with the web app for faster cross-platform development)
+
+### AI Capabilities
+- **LLM Engine:** vLLM or Ollama hosting Llama-3-8B (or similar open weights models). This provides full control over data privacy (vital for BFSI clients) and avoids massive API costs.
+
+---
+
+## Proposed Repository Structure (Turborepo)
+
+The project will be structured to separate concerns while maximizing code reuse.
+
+### `apps/web/`
+Next.js web dashboard for Sales, Marketing, and Admins. Includes the Unified Inbox, Broadcast composer, and No-Code Bot Studio.
+
+### `apps/mobile/`
+React Native (Expo) app for iOS and Android. Focuses on the mobile inbox, notifications, and SLA alerts.
+
+### `apps/api/`
+Node.js (Fastify/NestJS) main backend service. Handles authentication, workspace management, and database transactions.
+
+### `apps/webhook-processor/`
+Dedicated Node.js microservice to ingest Meta Webhooks, push them to Kafka, and process them asynchronously to ensure zero dropped messages.
+
+### `apps/ai-service/`
+Python (FastAPI) service dedicated to AI inferences, sentiment analysis, and generating reply suggestions.
+
+### `packages/ui/`
+Shared UI components (React/Tailwind) used by both Web and Mobile (where applicable).
+
+### `packages/database/`
+Prisma/Drizzle schema, migrations, and generated type-safe clients shared across backend services.
+
+---
+
+## Phased Execution Strategy
+
+### Phase 1: Foundation (Beta)
+*Goal: Establish core messaging and infrastructure.*
+- Set up Turborepo, CI/CD pipelines, and local Docker environments (Postgres, Redis, Kafka).
+- Implement User Authentication, Multi-tenant Role-Based Access Control (RBAC).
+- Integrate Meta Cloud API for sending/receiving WhatsApp messages.
+- Build the Web App: Unified Team Inbox and basic Contact Management.
+- Build the Core API and robust Webhook Processor.
+
+### Phase 2: Intelligence & Automation (GA Launch)
+*Goal: Introduce AI differentiators and Chatbot capabilities.*
+- Stand up the Python AI Service.
+- Implement AI Reply Suggestions and real-time Sentiment Analysis.
+- Develop the Visual No-Code Bot Studio and WhatsApp Flows integration.
+- Implement basic Campaign Broadcasting features.
+
+### Phase 3: Scale & Analytics
+*Goal: Enterprise features and massive scalability.*
+- Deploy ClickHouse and build the Analytics & Reporting Dashboard.
+- Build the multi-number management system (500+ numbers).
+- Implement advanced routing rules, SLA monitoring, and Mobile Apps.
+- Roll out CRM Integrations (Salesforce, HubSpot, Zoho).
+
+### Phase 4: Revenue & Ecosystem
+*Goal: Advanced marketing tools and attribution.*
+- Develop the AI Ads Manager (Click-to-WhatsApp Ads).
+- Build the Revenue Attribution Engine.
+- Integrate E-commerce platforms (Shopify, WooCommerce) and Product Catalogs.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- **Unit Tests:** `vitest` for core logic, specifically AI prompt generation, routing rules, and multi-tenant isolation.
+- **E2E Tests:** Playwright for the web dashboard (verifying the Unified Inbox and Bot Studio workflows).
+- **Load Testing:** `k6` to simulate Meta webhooks hitting the `webhook-processor` to ensure it meets the `< 500ms p99` latency requirement at high volumes.
+
+### Manual Verification
+- Deploying the infrastructure to a staging environment.
+- Registering a test WhatsApp Business number.
+- Sending live messages from personal devices to verify the end-to-end flow from Meta -> Webhook -> Kafka -> Web App (via WebSockets).
+- Verifying the latency and accuracy of the local AI models vs OpenAI API.

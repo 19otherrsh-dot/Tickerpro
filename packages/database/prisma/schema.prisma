@@ -1,0 +1,863 @@
+// TickerPro — Prisma Schema
+// Multi-tenant WhatsApp Business API Platform
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ─── Multi-Tenancy ──────────────────────────────────────────────────────────
+
+/// A workspace represents a single business account (tenant).
+/// All data is scoped to a workspace for multi-tenant isolation.
+model Workspace {
+  id             String  @id @default(cuid())
+  name           String
+  slug           String  @unique
+  plan           Plan    @default(STARTER)
+  isActive       Boolean @default(true)
+  autoAssign          Boolean @default(false) @map("auto_assign")
+  csatEnabled         Boolean @default(false) @map("csat_enabled")
+  metaBusinessId      String? @map("meta_business_id") /// Meta Business Manager ID
+  walletBalance       Float   @default(0.0) @map("wallet_balance") /// For Meta conversation credits
+  businessHours       Json?   @map("business_hours") /// Store schedule config
+  awayMessage         String? @map("away_message")
+  widgetConfig        Json?   @default("{}") @map("widget_config") /// Website Chat Widget settings
+  /// SLA: max minutes before a conversation is considered breached (null = disabled)
+  slaResponseMinutes  Int?    @map("sla_response_minutes")
+  /// Privacy: when true, AGENT-role users see masked phone numbers (e.g. +91 98765 ****)
+  maskPhoneNumbers    Boolean @default(false) @map("mask_phone_numbers")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  members          WorkspaceMember[]
+  whatsappNumbers  WhatsAppNumber[]
+  channelAccounts  ChannelAccount[]
+  contacts         Contact[]
+  conversations    Conversation[]
+  broadcasts       Broadcast[]
+  chatbotFlows     ChatbotFlow[]
+  messageTemplates MessageTemplate[]
+  tags             Tag[]
+  integrations     Integration[]
+  analytics        AnalyticsEvent[]
+  auditLogs        AuditLog[]
+  outboundWebhooks OutboundWebhook[]
+  whatsappFlows    WhatsAppFlow[]
+  ecomOrders       EcomOrder[]
+  ecomCarts        EcomCart[]
+  paymentLinks     PaymentLink[]
+  knowledgeBases   KnowledgeBase[]
+  csatResponses    CSATResponse[]
+  dripCampaigns    DripCampaign[]
+  metaCatalogs     MetaCatalog[]
+  segments         Segment[]
+
+  @@map("workspaces")
+}
+
+enum Plan {
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+// ─── Users & Access Control ─────────────────────────────────────────────────
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  passwordHash String  @map("password_hash")
+  firstName    String  @map("first_name")
+  lastName     String  @map("last_name")
+  avatarUrl    String? @map("avatar_url")
+  isActive     Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  memberships           WorkspaceMember[]
+  assignedConversations Conversation[]    @relation("AssignedAgent")
+  sentMessages          Message[]
+  passwordResets        PasswordReset[]
+
+  @@map("users")
+}
+
+/// Single-use, hashed password-reset tokens. The raw token is only ever sent
+/// to the user (by email); we store its SHA-256 hash so a DB leak can't be
+/// used to reset accounts.
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_resets")
+}
+
+model WorkspaceMember {
+  id   String     @id @default(cuid())
+  role MemberRole @default(AGENT)
+
+  userId      String @map("user_id")
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@map("workspace_members")
+}
+
+enum MemberRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  AGENT
+  VIEWER
+}
+
+// ─── WhatsApp Numbers ───────────────────────────────────────────────────────
+
+/// Represents a WhatsApp Business phone number connected via Meta Cloud API.
+model WhatsAppNumber {
+  id            String        @id @default(cuid())
+  phoneNumber   String        @map("phone_number")
+  displayName   String        @map("display_name")
+  wabaId        String        @map("waba_id") /// WhatsApp Business Account ID
+  phoneNumberId String        @unique @map("phone_number_id") /// Meta Phone Number ID
+  qualityRating QualityRating @default(GREEN) @map("quality_rating")
+  isVerified    Boolean       @default(false) @map("is_verified") /// Green Tick
+  isActive      Boolean       @default(true) @map("is_active")
+
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+  broadcasts    Broadcast[]
+
+  @@map("whatsapp_numbers")
+}
+
+enum QualityRating {
+  GREEN
+  YELLOW
+  RED
+}
+
+// ─── Contacts ───────────────────────────────────────────────────────────────
+
+model Contact {
+  id          String    @id @default(cuid())
+  /// Platform identifier for the contact. For WHATSAPP this is the E.164 phone
+  /// number; for MESSENGER/INSTAGRAM it is the page-scoped user id (PSID/IGSID),
+  /// since those channels never expose a phone number.
+  phoneNumber String    @map("phone_number")
+  channel     MessageChannel @default(WHATSAPP)
+  name        String?
+  email       String?
+  avatarUrl   String?   @map("avatar_url")
+  leadStage   LeadStage @default(NEW) @map("lead_stage")
+  language    String?   @default("en")
+  /// Birthday in MM-DD format for drip campaign triggers (e.g. "08-20")
+  birthday    String?   @map("birthday")
+  /// Anniversary in MM-DD format for drip campaign triggers (e.g. "03-15")
+  anniversary String?   @map("anniversary")
+
+  /// Custom properties stored as JSON
+  customFields Json? @default("{}") @map("custom_fields")
+
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+  contactTags   ContactTag[]
+  ecomOrders    EcomOrder[]
+  ecomCarts     EcomCart[]
+  paymentLinks  PaymentLink[]
+  csatResponses CSATResponse[]
+  dripEnrollments DripEnrollment[]
+
+  @@unique([phoneNumber, workspaceId])
+  @@index([workspaceId, leadStage])
+  @@index([workspaceId, phoneNumber])
+  @@map("contacts")
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+  CHURNED
+}
+
+// ─── Tags ───────────────────────────────────────────────────────────────────
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String
+  color String @default("#6366F1")
+
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contactTags      ContactTag[]
+  conversationTags ConversationTag[]
+
+  @@unique([name, workspaceId])
+  @@map("tags")
+}
+
+model ContactTag {
+  contactId String @map("contact_id")
+  tagId     String @map("tag_id")
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, tagId])
+  @@map("contact_tags")
+}
+
+// ─── Conversations ──────────────────────────────────────────────────────────
+
+model Conversation {
+  id             String             @id @default(cuid())
+  channel        MessageChannel     @default(WHATSAPP)
+  status         ConversationStatus @default(OPEN)
+  sentiment      Sentiment? /// AI-computed sentiment
+  sentimentScore Float?             @map("sentiment_score") /// -1.0 to 1.0
+  isUnread       Boolean            @default(true) @map("is_unread")
+  lastMessageAt  DateTime?          @map("last_message_at")
+  slaDeadline    DateTime?          @map("sla_deadline")
+  slaBreach      Boolean            @default(false) @map("sla_breach")
+  /// AI-computed CX quality score (0–10), populated on conversation close
+  cxScore        Float?             @map("cx_score")
+  /// Human-readable rationale for the CX score from the LLM
+  cxScoreReason  String?            @map("cx_score_reason")
+
+  adId           String?            @map("ad_id") /// Meta Ad ID for Click-to-WhatsApp
+  adTitle        String?            @map("ad_title") /// Meta Ad Title
+
+  contactId        String  @map("contact_id")
+  workspaceId      String  @map("workspace_id")
+  /// Only set for WHATSAPP conversations. MESSENGER/INSTAGRAM use channelAccountId.
+  whatsappNumberId String? @map("whatsapp_number_id")
+  /// Only set for MESSENGER/INSTAGRAM conversations (the Page / IG account).
+  channelAccountId String? @map("channel_account_id")
+  assignedAgentId  String? @map("assigned_agent_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  contact          Contact           @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  whatsappNumber   WhatsAppNumber?   @relation(fields: [whatsappNumberId], references: [id])
+  channelAccount   ChannelAccount?   @relation(fields: [channelAccountId], references: [id])
+  assignedAgent    User?             @relation("AssignedAgent", fields: [assignedAgentId], references: [id])
+  messages         Message[]
+  csatResponse     CSATResponse?
+  conversationTags ConversationTag[]
+  internalNotes    InternalNote[]
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, assignedAgentId])
+  @@index([workspaceId, lastMessageAt])
+  @@map("conversations")
+}
+
+enum ConversationStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+  CHURN_RISK
+}
+
+model ConversationTag {
+  conversationId String @map("conversation_id")
+  tagId          String @map("tag_id")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  tag          Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, tagId])
+  @@map("conversation_tags")
+}
+
+// ─── Messages ───────────────────────────────────────────────────────────────
+
+model Message {
+  id          String           @id @default(cuid())
+  waMessageId String?          @unique @map("wa_message_id") /// Meta's message ID
+  direction   MessageDirection
+  type        MessageType      @default(TEXT)
+  channel     MessageChannel   @default(WHATSAPP)
+  isInternal  Boolean          @default(false) @map("is_internal")
+  content     Json /// { text?, mediaUrl?, caption?, buttons?, etc. }
+  status      MessageStatus    @default(SENT)
+
+  conversationId String  @map("conversation_id")
+  senderId       String? @map("sender_id") /// null for inbound customer messages
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?        @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([waMessageId])
+  @@map("messages")
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageChannel {
+  WHATSAPP
+  MESSENGER
+  INSTAGRAM
+}
+
+/// A connected Facebook Page or Instagram professional account used for
+/// Messenger / Instagram Direct messaging. WhatsApp uses WhatsAppNumber instead.
+model ChannelAccount {
+  id          String         @id @default(cuid())
+  channel     MessageChannel
+  /// Meta Page ID (Messenger) or Instagram account ID.
+  externalId  String         @map("external_id")
+  name        String
+  /// Page access token used to send messages on this account's behalf.
+  accessToken String         @map("access_token")
+  isActive    Boolean        @default(true) @map("is_active")
+
+  workspaceId String   @map("workspace_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+
+  @@unique([externalId, channel])
+  @@index([workspaceId])
+  @@map("channel_accounts")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  LOCATION
+  CONTACT
+  STICKER
+  TEMPLATE
+  INTERACTIVE
+  REACTION
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// ─── Internal Notes ─────────────────────────────────────────────────────────
+
+model InternalNote {
+  id             String @id @default(cuid())
+  content        String
+  conversationId String @map("conversation_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("internal_notes")
+}
+
+// ─── Broadcasts & Campaigns ─────────────────────────────────────────────────
+
+model Broadcast {
+  id              String          @id @default(cuid())
+  name            String
+  status          BroadcastStatus @default(DRAFT)
+  templateName    String?         @map("template_name")
+  templateContent Json?           @map("template_content")
+  audienceFilter  Json?           @map("audience_filter") /// Segmentation criteria
+  
+  // A/B Testing Fields
+  isABTest        Boolean         @default(false) @map("is_ab_test")
+  templateA       String?         @map("template_a")
+  templateB       String?         @map("template_b")
+  winnerSelected  String?         @map("winner_selected")
+  
+  scheduledAt     DateTime?       @map("scheduled_at")
+  sentAt          DateTime?       @map("sent_at")
+  completedAt     DateTime?       @map("completed_at")
+
+  // Analytics
+  totalRecipients Int @default(0) @map("total_recipients")
+  sent            Int @default(0)
+  delivered       Int @default(0)
+  read            Int @default(0)
+  replied         Int @default(0)
+  failed          Int @default(0)
+
+  workspaceId      String  @map("workspace_id")
+  whatsappNumberId String? @map("whatsapp_number_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  whatsappNumber WhatsAppNumber? @relation(fields: [whatsappNumberId], references: [id])
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, scheduledAt])
+  @@map("broadcasts")
+}
+
+enum BroadcastStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ─── Message Templates ──────────────────────────────────────────────────────
+
+model MessageTemplate {
+  id             String           @id @default(cuid())
+  name           String
+  language       String           @default("en")
+  category       TemplateCategory
+  status         TemplateStatus   @default(DRAFT)
+  headerType     String?          @map("header_type") /// TEXT, IMAGE, VIDEO, DOCUMENT
+  headerContent  String?          @map("header_content")
+  bodyText       String           @map("body_text")
+  footerText     String?          @map("footer_text")
+  buttons        Json? /// Array of button configs
+  metaTemplateId String?          @map("meta_template_id")
+
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([name, language, workspaceId])
+  @@map("message_templates")
+}
+
+enum TemplateCategory {
+  MARKETING
+  UTILITY
+  AUTHENTICATION
+}
+
+enum TemplateStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Chatbot Flows ──────────────────────────────────────────────────────────
+
+model ChatbotFlow {
+  id           String          @id @default(cuid())
+  name         String
+  description  String?
+  isActive     Boolean         @default(false) @map("is_active")
+  triggerType  FlowTriggerType @default(KEYWORD) @map("trigger_type")
+  triggerValue String?         @map("trigger_value") /// keyword or event name
+  flowData     Json            @default("{}") @map("flow_data") /// The full flow builder JSON
+  language     String          @default("en")
+
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, isActive])
+  @@map("chatbot_flows")
+}
+
+model WhatsAppFlow {
+  id          String   @id @default(cuid())
+  workspaceId String   @map("workspace_id")
+  name        String
+  metaFlowId  String?  @map("meta_flow_id") /// ID from Meta API
+  status      String   @default("DRAFT") /// DRAFT, PUBLISHED, DEPRECATED
+  screens     Json     /// JSON representation of the Flow screens/fields
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("whatsapp_flows")
+}
+
+enum FlowTriggerType {
+  KEYWORD
+  FIRST_MESSAGE
+  EVENT
+  WEBHOOK
+  AD_CLICK
+}
+
+// ─── Audit Log ──────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id          String @id @default(cuid())
+  action      String /// e.g., "message.sent", "broadcast.created", "member.invited"
+  entityType  String @map("entity_type")
+  entityId    String @map("entity_id")
+  metadata    Json? /// Additional context
+  performedBy String @map("performed_by") /// User ID
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, action])
+  @@map("audit_logs")
+}
+
+// ─── Ecosystem & Commerce Sync ──────────────────────────────────────────────
+
+model Integration {
+  id       String          @id @default(cuid())
+  type     IntegrationType
+  config   Json            @default("{}") /// Stores access tokens, webhooks, API keys
+  isActive Boolean         @default(true) @map("is_active")
+
+  workspaceId String @map("workspace_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, type])
+  @@map("integrations")
+}
+
+enum IntegrationType {
+  META
+  SHOPIFY
+  WOOCOMMERCE
+  ZAPIER
+  MAKE
+  STRIPE
+  RAZORPAY
+  HUBSPOT
+  SALESFORCE
+  ZOHO
+  PIPEDRIVE
+}
+
+model EcomOrder {
+  id              String  @id @default(cuid())
+  externalOrderId String  @map("external_order_id") /// ID from Shopify/WooCommerce
+  totalAmount     Float   @map("total_amount")
+  currency        String  @default("USD")
+  status          String /// PAID, FULFILLED, CANCELLED
+  orderUrl        String? @map("order_url")
+  items           Json    @default("[]") /// Array of products
+
+  workspaceId String  @map("workspace_id")
+  contactId   String? @map("contact_id") /// Link to WhatsApp contact
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, externalOrderId])
+  @@map("ecom_orders")
+}
+
+model EcomCart {
+  id             String  @id @default(cuid())
+  externalCartId String  @map("external_cart_id")
+  totalAmount    Float   @map("total_amount")
+  currency       String  @default("USD")
+  checkoutUrl    String? @map("checkout_url")
+  items          Json    @default("[]")
+  recovered      Boolean @default(false)
+
+  workspaceId String  @map("workspace_id")
+  contactId   String? @map("contact_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, externalCartId])
+  @@map("ecom_carts")
+}
+
+model PaymentLink {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  contactId   String?   @map("contact_id")
+  amount      Float
+  currency    String    @default("USD")
+  description String
+  provider    String    /// STRIPE, RAZORPAY
+  externalId  String?   @map("external_id")
+  url         String?
+  status      String    @default("PENDING") /// PENDING, PAID, EXPIRED
+  createdAt   DateTime  @default(now()) @map("created_at")
+  paidAt      DateTime? @map("paid_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@map("payment_links")
+}
+
+// ─── Generative AI & Knowledge Base ─────────────────────────────────────────
+
+model KnowledgeBase {
+  id          String   @id @default(cuid())
+  name        String
+  sourceType  SourceType @map("source_type")
+  sourceUrl   String?  @map("source_url")
+  status      SyncStatus @default(PENDING)
+  
+  workspaceId String   @map("workspace_id")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  chunks      DocumentChunk[]
+
+  @@map("knowledge_bases")
+}
+
+enum SourceType {
+  URL
+  PDF
+  TEXT
+}
+
+enum SyncStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model DocumentChunk {
+  id              String   @id @default(cuid())
+  content         String
+  embedding       Unsupported("vector(1536)")?
+  
+  knowledgeBaseId String   @map("knowledge_base_id")
+
+  knowledgeBase   KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+
+  @@map("document_chunks")
+}
+
+model CSATResponse {
+  id             String   @id @default(cuid())
+  score          Int
+  comment        String?
+  conversationId String   @unique @map("conversation_id")
+  workspaceId    String   @map("workspace_id")
+  contactId      String   @map("contact_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  workspace      Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("csat_responses")
+}
+
+// ─── Drip Campaigns ───────────────────────────────────────────────────────
+
+model DripCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  triggerType String   @map("trigger_type") // e.g., "TAG_ADDED", "NEW_CONTACT"
+  triggerData Json?    @map("trigger_data") // e.g., { "tag": "interested" }
+  steps       Json     // Array of steps: [{ delayHours: 24, templateName: "follow_up_1" }, ...]
+  status      String   @default("DRAFT") // DRAFT, ACTIVE, PAUSED
+  
+  workspaceId String   @map("workspace_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  enrollments DripEnrollment[]
+
+  @@map("drip_campaigns")
+}
+
+model DripEnrollment {
+  id             String   @id @default(cuid())
+  currentStep    Int      @default(0) @map("current_step")
+  nextRunAt      DateTime @map("next_run_at")
+  status         String   @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  
+  campaignId     String   @map("campaign_id")
+  contactId      String   @map("contact_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  campaign       DripCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, contactId])
+  @@index([nextRunAt])
+  @@map("drip_enrollments")
+}
+
+// ─── Analytics & Audit ──────────────────────────────────────────────────────
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  eventName   String   @map("event_name")
+  properties  Json?
+  userId      String?  @map("user_id")
+  workspaceId String   @map("workspace_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("analytics_events")
+}
+
+// ─── Webhooks & Ecosystem ───────────────────────────────────────────────────
+
+model OutboundWebhook {
+  id          String   @id @default(cuid())
+  url         String
+  secret      String?
+  events      Json     // Array of event names (e.g. ["message.received", "contact.created"])
+  isActive    Boolean  @default(true) @map("is_active")
+  workspaceId String   @map("workspace_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("outbound_webhooks")
+}
+
+// ─── Meta Commerce (Catalogs & Products) ───────────────────────────────────
+
+model MetaCatalog {
+  id             String   @id @default(cuid())
+  metaCatalogId  String   @unique @map("meta_catalog_id")
+  name           String
+  workspaceId    String   @map("workspace_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  products       MetaProduct[]
+
+  @@map("meta_catalogs")
+}
+
+model MetaProduct {
+  id             String   @id @default(cuid())
+  retailerId     String   @map("retailer_id") /// Internal SKU or ID
+  metaProductId  String?  @unique @map("meta_product_id") /// Meta's Graph API product ID
+  catalogId      String   @map("catalog_id")
+  name           String
+  description    String?
+  price          Float
+  currency       String   @default("USD")
+  url            String?
+  imageUrl       String?  @map("image_url")
+  availability   String   @default("in stock")
+  inventory      Int      @default(0)
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  catalog        MetaCatalog @relation(fields: [catalogId], references: [id], onDelete: Cascade)
+
+  @@unique([catalogId, retailerId])
+  @@map("meta_products")
+}
+
+// ─── Marketing & Segmentation ───────────────────────────────────────────────
+
+model Segment {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  rules       Json     /// Array of rule objects (e.g. { field: "leadStage", operator: "EQUALS", value: "WON" })
+  matchType   String   @default("ALL") /// ALL (AND) or ANY (OR)
+  
+  workspaceId String   @map("workspace_id")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("segments")
+}
+

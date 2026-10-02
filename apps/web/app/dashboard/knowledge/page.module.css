@@ -1,0 +1,189 @@
+.container {
+  padding: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.addBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.addBtn:hover {
+  background: #059669;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.iconWrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.cardContent {
+  flex: 1;
+}
+
+.kbName {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.kbUrl {
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.kbUrl:hover {
+  text-decoration: underline;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.statusPENDING { background: #fef3c7; color: #92400e; }
+.statusPROCESSING { background: #dbeafe; color: #1e40af; }
+.statusCOMPLETED { background: #d1fae5; color: #065f46; }
+.statusFAILED { background: #fee2e2; color: #991b1b; }
+
+.deleteBtn {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modalContent {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.formInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modalActions button {
+  flex: 1;
+}
+
+.secondaryBtn {
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}

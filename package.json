@@ -1,0 +1,35 @@
+{
+  "name": "tickerpro",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:api": "turbo run dev --filter=api",
+    "dev:services": "turbo run dev --filter=api --filter=web",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "db:generate": "turbo run db:generate --filter=@tickerpro/database",
+    "db:push": "turbo run db:push --filter=@tickerpro/database",
+    "db:migrate": "turbo run db:migrate --filter=@tickerpro/database",
+    "db:seed": "turbo run db:seed --filter=@tickerpro/database",
+    "db:studio": "turbo run db:studio --filter=@tickerpro/database",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:reset": "docker-compose down -v && docker-compose up -d"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "turbo": "^2.9.12",
+    "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@11.9.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

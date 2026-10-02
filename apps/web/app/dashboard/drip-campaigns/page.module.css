@@ -1,0 +1,200 @@
+.container {
+  padding: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.primaryBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primaryBtn:hover {
+  background: #059669;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.cardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cardMeta {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.cardRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.statusACTIVE { background: #d1fae5; color: #065f46; }
+.statusDRAFT { background: #f3f4f6; color: #4b5563; }
+.statusPAUSED { background: #fef3c7; color: #92400e; }
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modalContent {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.formInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.formSelect {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+}
+
+.stepsContainer {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.stepItem {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-end;
+}
+
+.stepInputGroup {
+  flex: 1;
+}
+
+.addStepBtn {
+  background: transparent;
+  border: 1px dashed #d1d5db;
+  color: #6b7280;
+  padding: 8px;
+  border-radius: 6px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.addStepBtn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modalActions button {
+  flex: 1;
+}
+
+.secondaryBtn {
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}

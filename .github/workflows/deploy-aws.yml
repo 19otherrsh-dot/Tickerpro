@@ -1,0 +1,121 @@
+name: Deploy to AWS ECS
+
+# Only deploy after the CI pipeline (lint + typecheck + test + build) succeeds on
+# main. This prevents a broken build from ever reaching production.
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    branches: [main]
+    types: [completed]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: tickerpro
+  ECS_CLUSTER: tickerpro-cluster
+  # Container name inside each task definition (used when swapping the image).
+  API_CONTAINER: api
+  WEBHOOK_CONTAINER: webhook-processor
+  WEB_CONTAINER: web
+  ECS_SERVICE_API: tickerpro-api-service
+  ECS_SERVICE_WEBHOOK: tickerpro-webhook-service
+  ECS_SERVICE_WEB: tickerpro-web-service
+
+jobs:
+  build-and-deploy:
+    # Guard: workflow_run fires on success AND failure — only proceed on success.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ── Run database migrations BEFORE deploying new code ──────────────────
+      # New app versions may expect schema the running DB doesn't have yet.
+      # `prisma migrate deploy` applies committed migrations idempotently.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run database migrations
+        working-directory: packages/database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      # ── Build, push, and roll out each service to its new image ────────────
+      - name: Build & push images
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          # Browser-facing API URL is inlined into the web bundle at build time,
+          # so it must be passed as a build arg — a runtime env var is too late.
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: |
+          set -euo pipefail
+          for svc in api webhook web; do
+            build_args=()
+            if [ "$svc" = "web" ]; then
+              build_args+=(--build-arg "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL")
+            fi
+            docker build -f apps/${svc/webhook/webhook-processor}/Dockerfile \
+              "${build_args[@]}" \
+              -t "$ECR_REGISTRY/$ECR_REPOSITORY:${svc}-$IMAGE_TAG" .
+            docker push "$ECR_REGISTRY/$ECR_REPOSITORY:${svc}-$IMAGE_TAG"
+          done
+          echo "registry=$ECR_REGISTRY" >> "$GITHUB_OUTPUT"
+
+      # Register a NEW task-definition revision that points at the freshly-pushed
+      # image, then update the service to it. (The old workflow only ran
+      # --force-new-deployment, which re-pulls the SAME tag the task def already
+      # referenced — so new images were pushed but never actually deployed.)
+      - name: Deploy services
+        env:
+          ECR_REGISTRY: ${{ steps.build.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          deploy() {
+            local family="$1" container="$2" service="$3" image_key="$4"
+            local image="$ECR_REGISTRY/$ECR_REPOSITORY:${image_key}-$IMAGE_TAG"
+
+            # Take the current active task def, swap only this container's image,
+            # strip read-only fields, and register a new revision.
+            local new_def
+            new_def=$(aws ecs describe-task-definition --task-definition "$family" \
+              --query 'taskDefinition' --output json \
+              | jq --arg IMAGE "$image" --arg NAME "$container" '
+                  .containerDefinitions |= map(if .name == $NAME then .image = $IMAGE else . end)
+                  | del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                        .compatibilities, .registeredAt, .registeredBy)')
+
+            local arn
+            arn=$(aws ecs register-task-definition --cli-input-json "$new_def" \
+              --query 'taskDefinition.taskDefinitionArn' --output text)
+
+            aws ecs update-service --cluster "$ECS_CLUSTER" --service "$service" \
+              --task-definition "$arn"
+          }
+
+          deploy tickerpro-api      "$API_CONTAINER"     "$ECS_SERVICE_API"     api
+          deploy tickerpro-webhook  "$WEBHOOK_CONTAINER" "$ECS_SERVICE_WEBHOOK" webhook
+          deploy tickerpro-web      "$WEB_CONTAINER"     "$ECS_SERVICE_WEB"     web

@@ -1,0 +1,137 @@
+.page {
+  padding: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--tp-text-primary);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--tp-text-tertiary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: var(--tp-bg-primary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--tp-transition);
+}
+
+.card:hover {
+  border-color: var(--tp-brand-300);
+  box-shadow: var(--tp-shadow-md);
+  transform: translateY(-2px);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--tp-radius-md);
+  background: var(--tp-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.appInfo {
+  flex: 1;
+}
+
+.appName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--tp-text-primary);
+}
+
+.appDesc {
+  font-size: 0.85rem;
+  color: var(--tp-text-tertiary);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: var(--tp-radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: auto;
+}
+
+.statusActive {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.statusInactive {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+
+.actions {
+  margin-top: auto;
+  padding-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.connectBtn {
+  padding: 8px 16px;
+  background: var(--tp-brand-600);
+  color: white;
+  border: none;
+  border-radius: var(--tp-radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tp-transition);
+}
+
+.connectBtn:hover {
+  background: var(--tp-brand-700);
+}
+
+.manageBtn {
+  padding: 8px 16px;
+  background: var(--tp-bg-secondary);
+  color: var(--tp-text-primary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tp-transition);
+}
+
+.manageBtn:hover {
+  background: var(--tp-bg-tertiary);
+}

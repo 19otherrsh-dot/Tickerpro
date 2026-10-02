@@ -1,0 +1,18 @@
+TickerPro Dual License Agreement
+
+TickerPro is distributed under a dual-license model to support both the open-source community and commercial enterprise deployments.
+
+1. Open Source License (AGPLv3)
+The core CRM functionalities of TickerPro, including but not limited to the unified inbox, contact management, standard broadcasts, and basic WhatsApp API integrations, are licensed under the GNU Affero General Public License v3.0 (AGPLv3). 
+You may use, modify, and distribute this core software under the terms of the AGPLv3, which requires that any derivative works and services built upon it also be open-sourced under the AGPLv3.
+
+2. Commercial License
+Certain "Enterprise Features" are proprietary and require a valid Commercial License. These features include, but are not limited to:
+- AI Copilot (Summarize, Suggest Replies, Sentiment Analysis)
+- ClickHouse real-time analytics and dashboards
+- Advanced multi-number and multi-tenant support
+- Stripe and Shopify deeper integrations not included in the core
+
+To use these Enterprise Features in a commercial or production setting without open-sourcing your entire application under AGPLv3, you must purchase a Commercial License from TickerPro.
+
+For inquiries about purchasing a Commercial License, please contact sales@tickerpro.com.

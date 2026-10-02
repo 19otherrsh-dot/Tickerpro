@@ -1,0 +1,37 @@
+# Docker build context excludes. All images build from the repo root, so this
+# one file protects every Dockerfile. Keep secrets and build artifacts OUT of
+# the image — .env files here would otherwise be baked into image layers.
+
+# Dependencies (reinstalled inside the image)
+**/node_modules
+
+# Secrets — never copy env files into an image
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build outputs
+**/dist
+**/.next
+**/.turbo
+**/out
+**/coverage
+
+# VCS & CI
+.git
+.github
+.gitignore
+
+# Local/dev cruft
+**/*.log
+_tmp_*
+**/.DS_Store
+**/.vscode
+**/.idea
+docker-compose.yml
+docker-compose.override.yml
+
+# Tests & docs not needed at runtime
+**/*.test.ts
+**/__tests__
+**/load-tests

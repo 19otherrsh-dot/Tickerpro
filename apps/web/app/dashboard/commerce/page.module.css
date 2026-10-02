@@ -1,0 +1,154 @@
+.page {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--tp-text-primary);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--tp-text-tertiary);
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--tp-border);
+  margin-bottom: 24px;
+}
+
+.tabBtn {
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-weight: 600;
+  color: var(--tp-text-secondary);
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+
+.tabActive {
+  color: var(--tp-brand-600);
+  border-bottom-color: var(--tp-brand-600);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.statCard {
+  background: var(--tp-bg-primary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg);
+  padding: 24px;
+}
+
+.statTitle {
+  font-size: 0.85rem;
+  color: var(--tp-text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--tp-text-primary);
+}
+
+.tableContainer {
+  background: var(--tp-bg-primary);
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 16px 24px;
+  text-align: left;
+  border-bottom: 1px solid var(--tp-border);
+}
+
+.table th {
+  background: var(--tp-bg-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tp-text-tertiary);
+  text-transform: uppercase;
+}
+
+.statusPill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--tp-radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusPaid { background: #D1FAE5; color: #065F46; }
+.statusPending { background: #FEF3C7; color: #92400E; }
+.statusCancelled { background: #FEE2E2; color: #B91C1C; }
+
+.actionBtn {
+  background: none;
+  border: none;
+  color: var(--tp-brand-600);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  text-decoration: underline;
+}
+
+/* Modal for Payment Link */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--tp-bg-primary);
+  padding: 32px;
+  border-radius: var(--tp-radius-lg);
+  width: 100%;
+  max-width: 500px;
+}
+
+.formGroup { margin-bottom: 16px; }
+.formGroup label { display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: var(--tp-text-secondary); }
+.input, .select { width: 100%; padding: 10px; border: 1px solid var(--tp-border); border-radius: var(--tp-radius-md); font-size: 0.95rem; }
+
+.modalActions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.cancelBtn { padding: 10px 16px; background: var(--tp-bg-secondary); border: 1px solid var(--tp-border); border-radius: var(--tp-radius-md); cursor: pointer; font-weight: 600;}
+.submitBtn { padding: 10px 16px; background: var(--tp-brand-600); color: white; border: none; border-radius: var(--tp-radius-md); cursor: pointer; font-weight: 600;}
