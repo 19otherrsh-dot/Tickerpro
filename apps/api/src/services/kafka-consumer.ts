@@ -8,7 +8,7 @@ import { isAIConfigured } from "./ai-gateway.js";
 
 const kafka = new Kafka({
   clientId: "api-worker",
-  brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
+  brokers: (process.env.KAFKA_BROKERS || "localhost:9094").split(","),
 });
 
 const consumer = kafka.consumer({ groupId: "api-messages-group" });

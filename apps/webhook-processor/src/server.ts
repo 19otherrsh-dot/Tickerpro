@@ -17,7 +17,7 @@ const server = Fastify({
 // Configure Kafka
 const kafka = new Kafka({
   clientId: "webhook-processor",
-  brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
+  brokers: (process.env.KAFKA_BROKERS || "localhost:9094").split(","),
 });
 
 const producer = kafka.producer();

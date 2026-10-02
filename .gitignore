@@ -33,3 +33,7 @@ npm-debug.log*
 
 # Stray tool temp files
 _tmp_*
+
+# Python
+.venv/
+__pycache__/
