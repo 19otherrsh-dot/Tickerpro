@@ -1,0 +1,2 @@
+# Tickerpro
+Doubletick
