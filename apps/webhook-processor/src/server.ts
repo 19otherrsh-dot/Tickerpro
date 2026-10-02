@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import dotenv from "dotenv";
 import { Kafka } from "kafkajs";
-import crypto from "crypto";
+import { verifyMetaSignature } from "./verify-signature.js";
 
 dotenv.config();
 
@@ -13,6 +13,23 @@ const server = Fastify({
         : undefined,
   },
 });
+
+// Keep the raw body for HMAC verification (Meta signs the exact bytes it sent);
+// still parse JSON for the handler.
+server.addContentTypeParser(
+  "application/json",
+  { parseAs: "string" },
+  (req, body: string, done) => {
+    (req as any).rawBody = body;
+    if (!body) return done(null, {});
+    try {
+      done(null, JSON.parse(body));
+    } catch (err) {
+      (err as any).statusCode = 400;
+      done(err as Error, undefined);
+    }
+  }
+);
 
 // Configure Kafka
 const kafka = new Kafka({
@@ -60,24 +77,14 @@ server.get("/webhook", async (request, reply) => {
 
 // Webhook Ingestion (POST)
 server.post("/webhook", async (request, reply) => {
-  const signature = request.headers["x-hub-signature-256"] as string;
-  const body = request.body as any;
-
-  // Basic signature validation
-  if (process.env.META_APP_SECRET && signature) {
-    const rawBody = JSON.stringify(body);
-    const expectedSignature =
-      "sha256=" +
-      crypto
-        .createHmac("sha256", process.env.META_APP_SECRET)
-        .update(rawBody)
-        .digest("hex");
-
-    if (signature !== expectedSignature) {
-      server.log.warn("❌ Invalid webhook signature");
-      return reply.code(401).send({ error: "Invalid signature" });
-    }
+  const signature = request.headers["x-hub-signature-256"] as string | undefined;
+  const rawBody = (request as any).rawBody ?? JSON.stringify(request.body);
+  const sig = verifyMetaSignature(rawBody, signature);
+  if (!sig.valid) {
+    server.log.warn(`❌ Rejected webhook: ${sig.reason ?? "invalid signature"}`);
+    return reply.code(401).send({ error: "Invalid signature" });
   }
+  const body = request.body as any;
 
   // Omnichannel Identification
   let channel = "WHATSAPP";

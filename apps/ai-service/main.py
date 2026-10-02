@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 import openai
-from ingest import process_and_ingest, get_db_connection
+from ingest import process_and_ingest, get_db_connection, embed, CHAT_MODEL
 
 app = FastAPI(title="TickerPro AI Service")
 
@@ -39,7 +39,7 @@ Conversation:
 {conversation_text}
 """
         response = openai.ChatCompletion.create(
-            model="llama3",
+            model=CHAT_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
@@ -68,7 +68,7 @@ Conversation:
 Provide exactly 3 suggestions separated by "|||".
 """
         response = openai.ChatCompletion.create(
-            model="llama3",
+            model=CHAT_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
         )
@@ -107,12 +107,7 @@ async def ask_question(req: AskRequest):
 
     try:
         # 1. Embed the question
-        res = openai.Embedding.create(
-            input=req.question,
-            model="nomic-embed-text"
-        )
-        query_embedding = res['data'][0]['embedding']
-        embedding_str = f"[{','.join(map(str, query_embedding))}]"
+        embedding_str = embed(req.question)
 
         # 2. Vector search in PostgreSQL (pgvector cosine distance <=>)
         # We only search within knowledge bases belonging to this workspace
@@ -153,7 +148,7 @@ Question:
 Answer concisely:
 """
         chat_res = openai.ChatCompletion.create(
-            model="llama3",
+            model=CHAT_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )

@@ -9,6 +9,8 @@
 **/.env
 **/.env.*
 !**/.env.example
+secrets.7z
+.claude
 
 # Build outputs
 **/dist

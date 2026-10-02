@@ -55,7 +55,8 @@ export async function analyzeSentiment(
 export async function queryKnowledgeBase(workspaceId: string, query: string, limit = 3): Promise<string[]> {
   try {
     const embedding = await generateEmbedding(query);
-    
+    if (!embedding.length) return []; // AI not configured or embedding failed
+
     // Convert number[] to a string format that pgvector expects: '[0.1, 0.2, ...]'
     const embeddingStr = `[${embedding.join(",")}]`;
 

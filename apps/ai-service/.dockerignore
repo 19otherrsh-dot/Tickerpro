@@ -1,0 +1,7 @@
+# Build context is this directory, so the repo-root .dockerignore does not apply.
+.venv
+__pycache__
+*.pyc
+.env
+.env.*
+run-dev.ps1

@@ -10,6 +10,25 @@ if os.getenv("OPENAI_API_BASE"):
     openai.api_base = os.getenv("OPENAI_API_BASE")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# Same env vars as the Node AI gateway (apps/api/src/services/ai-gateway.ts).
+CHAT_MODEL = os.getenv("OPENAI_MODEL", "llama3")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+# Must match document_chunks.embedding vector(768).
+EMBEDDING_DIMENSIONS = 768
+
+def embed(text: str) -> str:
+    """Embed text and return it in pgvector's '[0.1,0.2,...]' literal format."""
+    params = {"input": text, "model": EMBEDDING_MODEL}
+    # Only OpenAI's text-embedding-3-* models support (and need) an explicit size.
+    if EMBEDDING_MODEL.startswith("text-embedding-3"):
+        params["dimensions"] = EMBEDDING_DIMENSIONS
+    vector = openai.Embedding.create(**params)['data'][0]['embedding']
+    if len(vector) != EMBEDDING_DIMENSIONS:
+        raise ValueError(
+            f"{EMBEDDING_MODEL} returned {len(vector)} dims; expected {EMBEDDING_DIMENSIONS}"
+        )
+    return f"[{','.join(map(str, vector))}]"
+
 def get_db_connection():
     # If the app runs locally, it connects to postgres://postgres:postgres@localhost:5432/tickerpro
     return psycopg2.connect(DATABASE_URL)
@@ -44,14 +63,7 @@ def process_and_ingest(kb_id: str, url: str = None, content: str = None):
 
         # Embed each chunk and insert into database
         for chunk in chunks:
-            response = openai.Embedding.create(
-                input=chunk,
-                model="nomic-embed-text"
-            )
-            embedding = response['data'][0]['embedding']
-            
-            # Note: pgvector expects string format '[0.1, 0.2, ...]'
-            embedding_str = f"[{','.join(map(str, embedding))}]"
+            embedding_str = embed(chunk)
 
             cursor.execute(
                 """

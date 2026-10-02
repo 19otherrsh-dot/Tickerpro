@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
 Get-Content '..\api\.env' |
-  Where-Object { $_ -match '^(DATABASE_URL|OPENAI_API_BASE|OPENAI_API_KEY)=' } |
+  Where-Object { $_ -match '^(DATABASE_URL|OPENAI_API_BASE|OPENAI_API_KEY|OPENAI_MODEL|EMBEDDING_MODEL)=' } |
   ForEach-Object {
     $k, $v = $_ -split '=', 2
     Set-Item "env:$k" $v.Trim().Trim('"')

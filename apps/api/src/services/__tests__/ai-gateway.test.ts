@@ -1,5 +1,11 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { isAIConfigured, chatCompletion, embed } from "../ai-gateway.js";
+import {
+  isAIConfigured,
+  chatCompletion,
+  embed,
+  embeddingDimensionsParam,
+  EMBEDDING_DIMENSIONS,
+} from "../ai-gateway.js";
 
 const ORIGINAL_ENV = { ...process.env };
 
@@ -30,5 +36,20 @@ describe("AI gateway configuration", () => {
     process.env.OPENAI_API_KEY = "sk-placeholder";
     await expect(chatCompletion([{ role: "user", content: "hi" }])).resolves.toBeNull();
     await expect(embed("hello")).resolves.toEqual([]);
+  });
+});
+
+describe("embedding dimensions", () => {
+  it("matches the document_chunks vector(768) column", () => {
+    expect(EMBEDDING_DIMENSIONS).toBe(768);
+  });
+
+  it("requests 768 dims from OpenAI text-embedding-3 models", () => {
+    expect(embeddingDimensionsParam("text-embedding-3-small")).toEqual({ dimensions: 768 });
+    expect(embeddingDimensionsParam("text-embedding-3-large")).toEqual({ dimensions: 768 });
+  });
+
+  it("sends no dimensions param to natively-sized local models", () => {
+    expect(embeddingDimensionsParam("nomic-embed-text")).toEqual({});
   });
 });

@@ -707,7 +707,8 @@ enum SyncStatus {
 model DocumentChunk {
   id              String   @id @default(cuid())
   content         String
-  embedding       Unsupported("vector(1536)")?
+  // 768 dims: Ollama nomic-embed-text; OpenAI text-embedding-3-* requested at 768.
+  embedding       Unsupported("vector(768)")?
   
   knowledgeBaseId String   @map("knowledge_base_id")
 

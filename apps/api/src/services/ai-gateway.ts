@@ -38,6 +38,18 @@ export function isAIConfigured(): boolean {
 export const CHAT_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 export const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
 
+/**
+ * Must match `document_chunks.embedding vector(768)`. nomic-embed-text is natively
+ * 768-dim; OpenAI's text-embedding-3-* accept a `dimensions` param to match.
+ * Fixed-size models of another width (e.g. text-embedding-ada-002) are not supported.
+ */
+export const EMBEDDING_DIMENSIONS = 768;
+
+/** Only OpenAI's text-embedding-3-* models support (and need) an explicit dimension count. */
+export function embeddingDimensionsParam(model: string): { dimensions?: number } {
+  return model.startsWith("text-embedding-3") ? { dimensions: EMBEDDING_DIMENSIONS } : {};
+}
+
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
 /**
@@ -106,8 +118,17 @@ export async function embed(text: string): Promise<number[]> {
     const res = await getAIClient().embeddings.create({
       model: EMBEDDING_MODEL,
       input: text,
+      ...embeddingDimensionsParam(EMBEDDING_MODEL),
     });
-    return res.data[0]?.embedding ?? [];
+    const vector = res.data[0]?.embedding ?? [];
+    if (vector.length && vector.length !== EMBEDDING_DIMENSIONS) {
+      console.error(
+        `[AI Gateway] ${EMBEDDING_MODEL} returned ${vector.length} dims; expected ${EMBEDDING_DIMENSIONS}. ` +
+          "Use nomic-embed-text or a text-embedding-3-* model."
+      );
+      return [];
+    }
+    return vector;
   } catch (err) {
     console.error("[AI Gateway] embed failed:", err);
     return [];
